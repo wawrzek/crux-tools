@@ -1,0 +1,69 @@
+# This file was created by Gemini as a translation of _prt-get from
+# the zsh package
+
+_prtget_get_all() {
+    prt-get list 2>/dev/null
+}
+
+_prtget_get_installed() {
+    prt-get listinst 2>/dev/null
+}
+
+_prtget_get_locked() {
+    prt-get listlocked 2>/dev/null
+}
+
+
+_prtget_completion() {
+    local cur prev opts commands
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    # List of available commands from the Zsh _commands array [cite: 1, 2, 3]
+    commands="help version list printf listinst listorphans info path readme dup
+              isinst current diff quickdiff depends quickdep deptree dependent
+              search dsearch fsearch install update grpinst depinst remove
+              sysup lock unlock listlocked ls cat edit"
+
+    # Global options [cite: 5]
+    opts="-v -vv --path --cache --config= --install-root= --no-std-config"
+
+    # If completing the first word after 'prt-get', suggest commands
+    if [[ ${COMP_CWORD} -eq 1 ]] ; then
+        COMPREPLY=( $(compgen -W "${commands} ${opts}" -- ${cur}) )
+        return 0
+    fi
+
+    # Handle command-specific arguments [cite: 12, 13, 23, 28]
+    case "${prev}" in
+        info|path|readme|ls|depends|quickdep|isinst|deptree)
+            COMPREPLY=( $(compgen -W "$(_prtget_get_all)" -- ${cur}) )
+            ;;
+        current|remove|dependent)
+            COMPREPLY=( $(compgen -W "$(_prtget_get_installed)" -- ${cur}) )
+            ;;
+        install|grpinst|depinst)
+            # Suggest ports not yet installed [cite: 25]
+            COMPREPLY=( $(compgen -W "$(_prtget_get_all)" -- ${cur}) )
+            ;;
+        unlock)
+            COMPREPLY=( $(compgen -W "$(_prtget_get_locked)" -- ${cur}) )
+            ;;
+        cat|edit)
+            # Suggest ports, then files [cite: 14]
+            if [[ ${COMP_CWORD} -eq 2 ]]; then
+                COMPREPLY=( $(compgen -W "$(_prtget_get_all)" -- ${cur}) )
+            else
+                COMPREPLY=( $(compgen -W "Pkgfile .signature .footprint README" -- ${cur}) )
+            fi
+            ;;
+        *)
+            # Default to all ports if no specific rule matches
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            ;;
+    esac
+}
+
+# Register the function for both prt-get and prt-cache
+complete -F _prtget_completion prt-get prt-cache
