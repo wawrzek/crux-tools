@@ -31,7 +31,7 @@ $command -uf -is && \
 	$command -us
 
 if [[ $GIT -eq 1 ]]; then
-	git commit -a -m:"$(basename $PWD): update version" && git push
+	git commit -a -m"$(basename $PWD): update version" && git push
 fi
 
 # vim: set noet ts=4 sw=4:
