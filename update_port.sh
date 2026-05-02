@@ -28,7 +28,7 @@ command="rootlesskit pkgmk"
 
 $command -d -if -is && \
 $command -uf -is && \
-	$command -us
+$command -us
 
 if [[ $GIT -eq 1 ]]; then
 	git commit -a -m"$(basename $PWD): update version" && git push
